@@ -1,0 +1,112 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stress Test Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+        .stats {
+            margin-top: 20px;
+        }
+        .stat {
+            margin-bottom: 10px;
+        }
+        .stat-label {
+            font-weight: bold;
+        }
+        .stat-value {
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Stress Test Results</h1>
+        </div>
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-label">Total Requests:</span>
+                <span class="stat-value" id="total-requests"></span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Successful Requests:</span>
+                <span class="stat-value" id="successful-requests"></span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Failed Requests:</span>
+                <span class="stat-value" id="failed-requests"></span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Average Response Time:</span>
+                <span class="stat-value" id="average-response-time"></span>
+            </div>
+        </div>
+        <div id="request-table">
+            <h2>Request Details</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Status</th>
+                        <th>Response Time (ms)</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody id="request-table-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const filePath = 'stress_test_results.json';
+
+        fetch(filePath)
+            .then(response => response.json())
+            .then(data => {
+                const totalRequests = data.length;
+                const successfulRequests = data.filter(item => item.status === 'success').length;
+                const failedRequests = data.filter(item => item.status === 'error').length;
+                const averageResponseTime = data.reduce((acc, curr) => acc + curr.responseTime, 0) / totalRequests;
+
+                document.getElementById('total-requests').textContent = totalRequests;
+                document.getElementById('successful-requests').textContent = successfulRequests;
+                document.getElementById('failed-requests').textContent = failedRequests;
+                document.getElementById('average-response-time').textContent = averageResponseTime.toFixed(2) + 'ms';
+
+                const requestTableBody = document.getElementById('request-table-body');
+                data.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${item.status}</td>
+                        <td>${item.responseTime}ms</td>
+                        <td>${JSON.stringify(item.data)}</td>
+                    `;
+                    requestTableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error reading file:', error));
+    </script>
+</body>
+</html>

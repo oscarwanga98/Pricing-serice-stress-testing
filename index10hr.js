@@ -3,7 +3,7 @@ const { performance } = require("perf_hooks");
 const fs = require("fs");
 
 // Configuration
-const URL = "http://localhost:3000/price"; // Replace with your pricing service URL
+const URL = "https://pricing-service-3-2.onrender.com/price"; // Replace with your pricing service URL
 const TOTAL_DURATION = 10 * 60 * 60 * 1000; // 10 hours in milliseconds
 const TOTAL_REQUESTS = 10000; // Total number of requests to be made
 const REQUEST_INTERVAL = TOTAL_DURATION / TOTAL_REQUESTS; // Interval between requests in ms
@@ -95,7 +95,8 @@ const analyzeResults = () => {
 
 // Function to save results to a file
 const saveResultsToFile = () => {
-  const filePath = `stress_test_results 10hr${new date()}.json`;
+//   const filePath = `stress_test_results 10hr${new date()}.json`;
+  const filePath = 'stress_test_results.json';
   fs.writeFileSync(filePath, JSON.stringify(results, null, 2));
   console.log(`Results saved to ${filePath}`);
 };

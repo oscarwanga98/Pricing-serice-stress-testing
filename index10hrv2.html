@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stress Test Results</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .chart {
+        width: 800px;
+        height: 600px;
+        border: 1px solid #ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Stress Test Results</h1>
+    <input type="file" id="fileInput" accept=".json" />
+    <button id="loadButton">Load File</button>
+    <div class="chart"></div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+      let data = [];
+
+      // Function to render the chart
+      function renderChart() {
+        const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+        const width = 800 - margin.left - margin.right;
+        const height = 600 - margin.top - margin.bottom;
+
+        const xScale = d3
+          .scaleTime()
+          .domain([
+            new Date(data[0].time),
+            new Date(data[data.length - 1].time),
+          ])
+          .range([0, width]);
+
+        const yScale = d3
+          .scaleLinear()
+          .domain([0, d3.max(data, (d) => d.responseTime)])
+          .range([height, 0]);
+
+        const line = d3
+          .line()
+          .x((d) => xScale(new Date(d.time)))
+          .y((d) => yScale(d.responseTime));
+
+        const chart = d3
+          .select(".chart")
+          .append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+        chart
+          .append("path")
+          .datum(data)
+          .attr("d", line)
+          .attr("stroke", "steelblue")
+          .attr("stroke-width", 2)
+          .attr("fill", "none");
+
+        // Add axis labels
+        chart
+          .append("g")
+          .attr("transform", `translate(0, ${height})`)
+          .call(d3.axisBottom(xScale));
+
+        chart.append("g").call(d3.axisLeft(yScale));
+
+        // Add peak hour and down time markers
+        const peakHourMarkers = chart
+          .selectAll(".peak-hour-marker")
+          .data(
+            data.filter((d) => d.status === "success" && d.responseTime > 500)
+          )
+          .enter()
+          .append("circle")
+          .attr("class", "peak-hour-marker")
+          .attr("cx", (d) => xScale(new Date(d.time)))
+          .attr("cy", (d) => yScale(d.responseTime))
+          .attr("r", 5)
+          .attr("fill", "red");
+
+        const downTimeMarkers = chart
+          .selectAll(".down-time-marker")
+          .data(data.filter((d) => d.status === "error"))
+          .enter()
+          .append("circle")
+          .attr("class", "down-time-marker")
+          .attr("cx", (d) => xScale(new Date(d.time)))
+          .attr("cy", (d) => yScale(d.responseTime))
+          .attr("r", 5)
+          .attr("fill", "orange");
+      }
+
+      // Load file button event listener
+      document.getElementById("loadButton").addEventListener("click", () => {
+        const fileInput = document.getElementById("fileInput");
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+          data = JSON.parse(reader.result);
+          renderChart();
+        };
+        reader.readAsText(file);
+      });
+    </script>
+  </body>
+</html>
